@@ -1,0 +1,76 @@
+@font-face {
+    font-family: 'Noto Sans Medium';
+    src: url('../fonts/NotoSans/NotoSans-Medium.ttf') format('ttf');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+
+}
+
+@font-face {
+    font-family: 'Noto Sans Regular';
+    src: url('../fonts/NotoSans/NotoSans-Regular.ttf') format('ttf');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+
+}
+
+@font-face {
+    font-family: 'Noto_Sans_Light';
+    src: url('../fonts/NotoSans/NotoSans-Light.ttf') format('ttf');
+    font-weight: 100;
+    font-style: normal;
+    font-display: swap;
+
+}
+
+@font-face {
+    font-family: 'Noto Sans Thin';
+    src: url('../fonts/NotoSans/NotoSans-Thin.ttf') format('ttf');
+    font-weight: 200;
+    font-style: normal;
+    font-display: swap;
+
+}
+
+@font-face {
+    font-family: 'Noto Sans Black';
+    src: url('../fonts/NotoSans/NotoSans-Black.ttf') format('ttf');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+
+}
+
+@font-face {
+    font-family: 'PT_Serif Regular';
+    src: url('../fonts/PT_Serif/PTSerif-Regular.ttf') format('ttf');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'PT_Serif Bold';
+    src: url('../fonts/PT_Serif/PTSerif-Bold.ttf') format('ttf');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'PT_Serif Italic';
+    src: url('../fonts/PT_Serif/PTSerif-Italic.ttf') format('ttf');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'PT_Serif Italic Bold';
+    src: url('../fonts/PT_Serif/PTSerif-BoldItalic.ttf') format('ttf');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}

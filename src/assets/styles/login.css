@@ -1,0 +1,181 @@
+@import url(../../assets/components/fonts.css);
+@import url(../../assets/components/colors.css);
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    font-family: 'Noto Sans', sans-serif;
+    background-color: var(--logoColor); /* ← Весь экран в цвете формы! */
+    color: var(--white);
+    
+}
+
+main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 100vh;
+    /* Убрали padding — форма на всю страницу */
+}
+
+.main_div {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 1rem; /* Небольшой отступ по бокам для мобильных */
+}
+
+/* Убрали фон, тень и скругление — теперь вся страница и так в этом цвете */
+.main_div_form {
+    /* background-color: var(--logoColor); ← УБРАЛИ */
+    padding: 3rem 2rem; /* Внутренние отступы для дыхания */
+    /* border-radius: 2rem; ← УБРАЛИ */
+    /* box-shadow: ... ← УБРАЛИ */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 600px;
+}
+
+.form_group {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 500px;
+    margin-bottom: 1.5rem;
+}
+
+label {
+    font-weight: 500;
+    font-size: 1.2rem;
+    font-family: "Noto Sans", sans-serif;
+    color: var(--white);
+    margin-bottom: 0.5rem;
+    text-align: left;
+    align-self: flex-start;
+}
+
+input, textarea, select {
+    height: 3rem;
+    width: 100%;
+    font-size: 1.2rem;
+    text-align: center;
+    background-color: rgba(255, 255, 255, 0.1); /* Полупрозрачный фон для полей */
+    color: var(--white);
+    border: 1px solid var(--white);
+    border-radius: 0.75rem;
+    padding: 0 1.2rem;
+    outline: none;
+    backdrop-filter: blur(5px); /* Опционально: эффект стекла */
+}
+
+input::placeholder,
+textarea::placeholder,
+select:invalid {
+    color: var(--white);
+    opacity: 0.8;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    border-color: var(--white);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4);
+}
+
+.form_button {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 1.5rem;
+}
+
+button {
+    height: 3.5rem;
+    width: 100%;
+
+    font-size: 1.3rem;
+    font-weight: 600;
+    background-color: var(--white);
+    color: var(--logoColor);
+    border: none;
+    border-radius: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Стиль для ссылки на логин — теперь на цветном фоне */
+.login-link {
+    margin-top: 2rem;
+    font-size: 1.1rem;
+    color: var(--white);
+    text-align: center;
+    text-decoration: none;
+    opacity: 0.95;
+    transition: opacity 0.2s;
+}
+
+.login-link:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
+.login-link strong {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .main_div_form {
+        padding: 2rem 1.5rem;
+    }
+    input, textarea, select {
+        height: 2.8rem;
+        font-size: 1.1rem;
+    }
+    button {
+        height: 3.2rem;
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .main_div_form {
+        padding: 1.5rem 1rem;
+    }
+    .form_group {
+        margin-bottom: 1.2rem;
+    }
+    label {
+        font-size: 1.1rem;
+    }
+    input, textarea, select {
+        height: 2.6rem;
+        font-size: 1rem;
+        padding: 0 1rem;
+    }
+    button {
+        height: 3rem;
+        font-size: 1.1rem;
+    }
+    .login-link {
+        font-size: 1rem;
+        margin-top: 1.5rem;
+    }
+}

@@ -1,0 +1,29 @@
+
+{
+  "name": "working",
+  "version": "1.0.0",
+  "description": "A simple project to manage tasks and workflows.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "jest",
+    "lint": "eslint .",
+    "build": "echo 'Build command placeholder'"
+  },
+  "keywords": [
+    "task",
+    "workflow",
+    "productivity"
+  ],
+  "author": "Kislin Stepan",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.0"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "nodemon": "^3.0.0",
+    "eslint": "^8.0.0"
+  }
+}
