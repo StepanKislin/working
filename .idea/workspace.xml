@@ -10,6 +10,9 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 5
 }</component>
@@ -21,6 +24,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "<unknown>",
     "ignore.virus.scanning.warn.message": "true",
     "last_opened_file_path": "/Applications/MAMP/htdocs/Working2/Working/Working — копия",
     "node.js.detected.package.eslint": "true",
@@ -126,7 +130,7 @@
       <workItem from="1756995027927" duration="3782000" />
       <workItem from="1757084316419" duration="27992000" />
       <workItem from="1758018377888" duration="1758000" />
-      <workItem from="1760368690989" duration="541000" />
+      <workItem from="1760368690989" duration="2860000" />
     </task>
     <servers />
   </component>

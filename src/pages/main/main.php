@@ -1,6 +1,42 @@
 <?php
 session_start();
 
+// === ВАЛЮТНЫЕ КУРСЫ (на 2025, можно обновлять) ===
+$exchangeRates = [
+    'USD' => 1.0,
+    'RUB' => 0.011,   // ~90 RUB = 1 USD
+    'EUR' => 1.07,
+    'GBP' => 1.27,
+    'CNY' => 0.14,    // ~7.2 CNY = 1 USD
+    'TRY' => 0.03,    // ~33 TRY = 1 USD
+    'KZT' => 0.0021,  // ~470 KZT = 1 USD
+    'UAH' => 0.024,   // ~41 UAH = 1 USD
+    'BYN' => 0.30,    // ~3.3 BYN = 1 USD
+];
+
+// Функция нормализации цены в USD
+function normalizeToUSD($priceStr, $rates) {
+    if (empty($priceStr)) return 0.0;
+
+    $priceStr = trim($priceStr);
+    $number = (float) preg_replace('/[^\d.,]/', '', str_replace(',', '.', $priceStr));
+    if ($number <= 0) return 0.0;
+
+    // Определяем валюту по символу или коду
+    if (preg_match('/[₽р]{1,2}/iu', $priceStr)) return $number * $rates['RUB'];
+    if (preg_match('/[\$]/', $priceStr)) return $number * $rates['USD'];
+    if (preg_match('/[€]/', $priceStr)) return $number * $rates['EUR'];
+    if (preg_match('/[£]/', $priceStr)) return $number * $rates['GBP'];
+    if (preg_match('/[¥元]/u', $priceStr)) return $number * $rates['CNY'];
+    if (preg_match('/[₺TL]/i', $priceStr)) return $number * $rates['TRY'];
+    if (preg_match('/тг/i', $priceStr)) return $number * $rates['KZT'];
+    if (preg_match('/грн/i', $priceStr)) return $number * $rates['UAH'];
+    if (preg_match('/Br/i', $priceStr)) return $number * $rates['BYN'];
+
+    // По умолчанию — рубли (для русскоязычной аудитории)
+    return $number * $rates['RUB'];
+}
+
 $host = 'localhost';
 $dbname = 'working';
 $username = 'root';
@@ -52,7 +88,7 @@ try {
     ");
     $services = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // ЗАЯВКИ: все поля
+    // ЗАЯВКИ
     if ($is_logged_in && $user_id) {
         $stmt = $pdo->prepare("
             SELECT 
@@ -184,24 +220,67 @@ try {
         .theme-header {
             margin-bottom: 1.5rem;
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         .theme-header h2 {
             font-size: 2rem;
             color: #e0e0e0;
             margin-bottom: 1rem;
         }
-        .theme-header a {
-            display: inline-block;
-            padding: 0.6rem 1.5rem;
+        .theme-header .actions {
+            display: flex;
+            gap: 1rem;
             margin-top: 0.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+        .theme-header a {
+            padding: 0.6rem 1.5rem;
             border-radius: 30px;
             background-color: #959595;
             text-decoration: none;
             color: white;
             font-size: 1rem;
+            white-space: nowrap;
         }
         .theme-header a:hover {
             background-color: #4a9eff;
+        }
+
+        /* === СТИЛИ ДЛЯ ФИЛЬТРОВ === */
+        .filters {
+            display: flex;
+            gap: 12px;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+        .filters label {
+            color: #aaa;
+            font-size: 0.95rem;
+        }
+        .filters select {
+            padding: 0.65rem 1rem;
+            border-radius: 0.7rem;
+            background: #222;
+            color: white;
+            border: 1px solid #444;
+            font-size: 0.95rem;
+            min-width: 180px;
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .filters select:focus {
+            outline: none;
+            border-color: #4a9eff;
+            box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.2);
+        }
+        .filters select:hover {
+            border-color: #666;
         }
 
         ul {
@@ -215,6 +294,11 @@ try {
             padding: 1.2rem;
             border-radius: 12px;
             line-height: 1.5;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        li:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
         li.not {
             background: transparent;
@@ -263,14 +347,28 @@ try {
     <div class="theme-content active" id="vacancies-content">
         <div class="theme-header">
             <h2>Вакансии</h2>
-            <?php if ($is_logged_in): ?>
-                <a href="../../modules/add/add-vacancies.php">+ Добавить вакансию</a>
-            <?php endif; ?>
+            <div class="actions">
+                <?php if ($is_logged_in): ?>
+                    <a href="../../modules/add/add-vacancies.php">+ Добавить вакансию</a>
+                <?php endif; ?>
+                <div class="filters">
+                    <label for="vacancies-sort">Сортировать:</label>
+                    <select id="vacancies-sort">
+                        <option value="default">По умолчанию</option>
+                        <option value="salary-asc">ЗП: по возрастанию</option>
+                        <option value="salary-desc">ЗП: по убыванию</option>
+                        <option value="date-new">Сначала новые</option>
+                        <option value="date-old">Сначала старые</option>
+                    </select>
+                </div>
+            </div>
         </div>
         <ul>
             <?php if (!empty($vacancies)): ?>
                 <?php foreach ($vacancies as $v): ?>
-                    <li>
+                    <?php $usd = normalizeToUSD($v['salary'] ?? '', $exchangeRates); ?>
+                    <li data-salary-usd="<?= number_format($usd, 2, '.', '') ?>"
+                        data-date="<?= strtotime($v['created_at'] ?? 'now') ?>">
                         <h3><?= htmlspecialchars($v['title'] ?? '', ENT_QUOTES, 'UTF-8') ?></h3>
                         <?php if (!empty($v['creator_name'])): ?>
                             <p>👤 Автор: <strong><?= htmlspecialchars($v['creator_name'], ENT_QUOTES, 'UTF-8') ?></strong></p>
@@ -305,14 +403,28 @@ try {
     <div class="theme-content" id="services-content">
         <div class="theme-header">
             <h2>Услуги</h2>
-            <?php if ($is_logged_in): ?>
-                <a href="../../modules/add/add-services.php">+ Добавить услугу</a>
-            <?php endif; ?>
+            <div class="actions">
+                <?php if ($is_logged_in): ?>
+                    <a href="../../modules/add/add-services.php">+ Добавить услугу</a>
+                <?php endif; ?>
+                <div class="filters">
+                    <label for="services-sort">Сортировать:</label>
+                    <select id="services-sort">
+                        <option value="default">По умолчанию</option>
+                        <option value="price-asc">Цена: по возрастанию</option>
+                        <option value="price-desc">Цена: по убыванию</option>
+                        <option value="date-new">Сначала новые</option>
+                        <option value="date-old">Сначала старые</option>
+                    </select>
+                </div>
+            </div>
         </div>
         <ul>
             <?php if (!empty($services)): ?>
                 <?php foreach ($services as $s): ?>
-                    <li>
+                    <?php $usd = normalizeToUSD($s['price'] ?? '', $exchangeRates); ?>
+                    <li data-price-usd="<?= number_format($usd, 2, '.', '') ?>"
+                        data-date="<?= strtotime($s['created_at'] ?? 'now') ?>">
                         <h3><?= htmlspecialchars($s['title'] ?? '', ENT_QUOTES, 'UTF-8') ?></h3>
                         <?php if (!empty($s['creator_name'])): ?>
                             <p>👤 Автор: <strong><?= htmlspecialchars($s['creator_name'], ENT_QUOTES, 'UTF-8') ?></strong></p>
@@ -341,53 +453,75 @@ try {
     </div>
 
     <!-- Заявки -->
-<?php if ($is_logged_in): ?>
-<div class="theme-content" id="requests-content">
-    <div class="theme-header">
-        <h2>Ваши заявки</h2>
-        <a href="../../modules/add/add-requests.php">+ Добавить заявку</a>
+    <?php if ($is_logged_in): ?>
+    <div class="theme-content" id="requests-content">
+        <div class="theme-header">
+            <h2>Ваши заявки</h2>
+            <div class="actions">
+                <a href="../../modules/add/add-requests.php">+ Добавить заявку</a>
+                <div class="filters">
+                    <label for="requests-sort">Сортировать:</label>
+                    <select id="requests-sort">
+                        <option value="default">По умолчанию</option>
+                        <option value="price-asc">Бюджет: по возрастанию</option>
+                        <option value="price-desc">Бюджет: по убыванию</option>
+                        <option value="date-new">Сначала новые</option>
+                        <option value="date-old">Сначала старые</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <ul>
+            <?php if (!empty($requests)): ?>
+                <?php foreach ($requests as $r): ?>
+                    <?php $usd = normalizeToUSD($r['price'] ?? '', $exchangeRates); ?>
+                    <li data-price-usd="<?= number_format($usd, 2, '.', '') ?>"
+                        data-date="<?= strtotime($r['created_at'] ?? 'now') ?>">
+                        <h3><?= htmlspecialchars($r['title'] ?? '', ENT_QUOTES, 'UTF-8') ?></h3>
+                        <?php if (!empty($r['creator_name'])): ?>
+                            <p>👤 Автор: <strong><?= htmlspecialchars($r['creator_name'], ENT_QUOTES, 'UTF-8') ?></strong></p>
+                        <?php endif; ?>
+                        <?php if (!empty($r['price'])): ?>
+                            <p>💰 Бюджет: <?= htmlspecialchars($r['price'], ENT_QUOTES, 'UTF-8') ?></p>
+                        <?php endif; ?>
+                        <?php if (!empty($r['location'])): ?>
+                            <p>📍 Местоположение: <?= htmlspecialchars($r['location'], ENT_QUOTES, 'UTF-8') ?></p>
+                        <?php endif; ?>
+                        <?php if (!empty($r['description'])): ?>
+                            <p>📄 Описание:<br><?= nl2br(htmlspecialchars($r['description'], ENT_QUOTES, 'UTF-8')) ?></p>
+                        <?php endif; ?>
+                        <?php if (!empty($r['requirements'])): ?>
+                            <p>📋 Требования:<br><?= nl2br(htmlspecialchars($r['requirements'], ENT_QUOTES, 'UTF-8')) ?></p>
+                        <?php endif; ?>
+                        <?php if (!empty($r['contacts'])): ?>
+                            <p>📞 Ваши контакты: <strong><?= htmlspecialchars($r['contacts'], ENT_QUOTES, 'UTF-8') ?></strong></p>
+                        <?php endif; ?>
+                        <?php if (!empty($r['created_at'])): ?>
+                            <small>Создано: <?= date('d.m.Y в H:i', strtotime($r['created_at'])) ?></small>
+                        <?php endif; ?>
+                    </li>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <li class="not">У вас пока нет заявок</li>
+            <?php endif; ?>
+        </ul>
     </div>
-    <ul>
-        <?php if (!empty($requests)): ?>
-            <?php foreach ($requests as $r): ?>
-                <li>
-                    <h3><?= htmlspecialchars($r['title'] ?? '', ENT_QUOTES, 'UTF-8') ?></h3>
-                    <?php if (!empty($r['creator_name'])): ?>
-                        <p>👤 Автор: <strong><?= htmlspecialchars($r['creator_name'], ENT_QUOTES, 'UTF-8') ?></strong></p>
-                    <?php endif; ?>
-                    <?php if (!empty($r['price'])): ?>
-                        <p>💰 Бюджет: <?= htmlspecialchars($r['price'], ENT_QUOTES, 'UTF-8') ?></p>
-                    <?php endif; ?>
-                    <?php if (!empty($r['location'])): ?>
-                        <p>📍 Местоположение: <?= htmlspecialchars($r['location'], ENT_QUOTES, 'UTF-8') ?></p>
-                    <?php endif; ?>
-                    <?php if (!empty($r['description'])): ?>
-                        <p>📄 Описание:
-<?= nl2br(htmlspecialchars($r['description'], ENT_QUOTES, 'UTF-8')) ?></p>
-                    <?php endif; ?>
-                    <?php if (!empty($r['requirements'])): ?>
-                        <p>📋 Требования:
-<?= nl2br(htmlspecialchars($r['requirements'], ENT_QUOTES, 'UTF-8')) ?></p>
-                    <?php endif; ?>
-                    <?php if (!empty($r['contacts'])): ?>
-                        <p>📞 Ваши контакты: <strong><?= htmlspecialchars($r['contacts'], ENT_QUOTES, 'UTF-8') ?></strong></p>
-                    <?php endif; ?>
-                    <?php if (!empty($r['created_at'])): ?>
-                        <small>Создано: <?= date('d.m.Y в H:i', strtotime($r['created_at'])) ?></small>
-                    <?php endif; ?>
-                </li>
-            <?php endforeach; ?>
-        <?php else: ?>
-            <li class="not">У вас пока нет заявок</li>
-        <?php endif; ?>
-    </ul>
-</div>
-<?php endif; ?>
+    <?php endif; ?>
 </div>
 
 <script>
     const buttons = document.querySelectorAll('.theme-btn');
     const contents = document.querySelectorAll('.theme-content');
+    const searchInput = document.getElementById('search-input');
+
+    const originalOrders = {};
+
+    contents.forEach(content => {
+        const list = content.querySelector('ul');
+        if (list) {
+            originalOrders[content.id] = Array.from(list.children);
+        }
+    });
 
     buttons.forEach(button => {
         button.addEventListener('click', () => {
@@ -396,8 +530,105 @@ try {
             contents.forEach(c => c.classList.remove('active'));
             button.classList.add('active');
             document.getElementById(theme + '-content')?.classList.add('active');
+            if (searchInput) {
+                searchInput.value = '';
+                filterContent();
+            }
+            const sortSelect = document.getElementById(theme + '-sort');
+            if (sortSelect) {
+                sortSelect.value = 'default';
+                restoreOriginalOrder(theme + '-content');
+            }
         });
     });
+
+    function restoreOriginalOrder(contentId) {
+        const content = document.getElementById(contentId);
+        const list = content.querySelector('ul');
+        const original = originalOrders[contentId];
+        if (list && original) {
+            list.innerHTML = '';
+            original.forEach(item => list.appendChild(item.cloneNode(true)));
+        }
+        originalOrders[contentId] = Array.from(list.children);
+        filterContent();
+    }
+
+    function filterContent() {
+        const query = searchInput?.value.trim().toLowerCase() || '';
+        const activeContent = document.querySelector('.theme-content.active');
+        if (!activeContent) return;
+
+        const items = activeContent.querySelectorAll('li:not(.not)');
+        let visibleCount = 0;
+
+        items.forEach(item => {
+            const text = item.textContent.toLowerCase();
+            const isVisible = text.includes(query);
+            item.style.display = isVisible ? 'block' : 'none';
+            if (isVisible) visibleCount++;
+        });
+
+        const noResults = activeContent.querySelector('li.not');
+        if (noResults) {
+            noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+    }
+
+    function sortItems(contentId, sortBy) {
+        const content = document.getElementById(contentId);
+        const list = content.querySelector('ul');
+        const items = Array.from(content.querySelectorAll('li:not(.not)'));
+
+        if (sortBy === 'default') {
+            restoreOriginalOrder(contentId);
+            return;
+        }
+
+        const filteredItems = items.filter(item => item.style.display !== 'none');
+
+        filteredItems.sort((a, b) => {
+            if (sortBy === 'salary-asc' || sortBy === 'price-asc') {
+                const valA = parseFloat(a.dataset.salaryUsd || a.dataset.priceUsd || 0);
+                const valB = parseFloat(b.dataset.salaryUsd || b.dataset.priceUsd || 0);
+                return valA - valB;
+            }
+            if (sortBy === 'salary-desc' || sortBy === 'price-desc') {
+                const valA = parseFloat(a.dataset.salaryUsd || a.dataset.priceUsd || 0);
+                const valB = parseFloat(b.dataset.salaryUsd || b.dataset.priceUsd || 0);
+                return valB - valA;
+            }
+            if (sortBy === 'date-new') {
+                return (b.dataset.date || 0) - (a.dataset.date || 0);
+            }
+            if (sortBy === 'date-old') {
+                return (a.dataset.date || 0) - (b.dataset.date || 0);
+            }
+            return 0;
+        });
+
+        const noResults = content.querySelector('li.not');
+        list.innerHTML = '';
+        filteredItems.forEach(item => list.appendChild(item));
+        if (noResults) list.appendChild(noResults);
+
+        originalOrders[contentId] = Array.from(list.children);
+    }
+
+    ['vacancies', 'services', 'requests'].forEach(type => {
+        const select = document.getElementById(type + '-sort');
+        if (select) {
+            select.addEventListener('change', (e) => {
+                sortItems(type + '-content', e.target.value);
+            });
+        }
+    });
+
+    if (searchInput) {
+        searchInput.addEventListener('input', filterContent);
+    }
+
+    filterContent();
 </script>
 </body>
 </html>

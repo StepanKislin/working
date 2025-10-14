@@ -168,7 +168,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <textarea name="requirements" id="requirements" placeholder="Например: опыт 2 года, знание PHP"><?= htmlspecialchars($_POST['requirements'] ?? '', ENT_QUOTES) ?></textarea>
 
             <label for="salary">Зарплата</label>
-            <input type="text" name="salary" id="salary" placeholder="Например: от 100 000 ₽" value="<?= htmlspecialchars($_POST['salary'] ?? '', ENT_QUOTES) ?>">
+            <input type="text" name="salary" id="salary" placeholder="Сумма + валюта(₽, $, €, £, ¥元, ₺TL, тг, грн, Br)" value="<?= htmlspecialchars($_POST['salary'] ?? '', ENT_QUOTES) ?>">
 
             <label for="location">Местоположение</label>
             <input type="text" name="location" id="location" placeholder="Город или удалёнка" value="<?= htmlspecialchars($_POST['location'] ?? '', ENT_QUOTES) ?>">
