@@ -2,21 +2,20 @@
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    require '../../config/databases/db.php'; // Убедитесь, что путь верный!
+    require '../../config/databases/db.php';
 
     $name = trim($_POST['name'] ?? '');
     $surname = trim($_POST['surname'] ?? '');
     $patronymic = trim($_POST['patronymic'] ?? '');
-    $birth_date = $_POST['age'] ?? ''; // Это дата рождения, не возраст
+    $birth_date = $_POST['birth_date'] ?? '';
     $country = trim($_POST['country'] ?? '');
     $region = trim($_POST['region'] ?? '');
     $city = trim($_POST['city'] ?? '');
-    $phone = trim($_POST['number'] ?? '');
+    $phone = trim($_POST['phone'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
     $password_confirm = $_POST['password_confirm'] ?? '';
 
-    // Валидация
     if (empty($name) || empty($surname) || empty($patronymic) || empty($birth_date) ||
         empty($country) || empty($region) || empty($city) || empty($phone) ||
         empty($email) || empty($password) || empty($password_confirm)) {
@@ -28,7 +27,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (strlen($password) < 8) {
         $error = 'Пароль должен быть не короче 8 символов';
     } else {
-        // Проверка email на уникальность
         $check = $conn->prepare("SELECT id FROM users WHERE email = ?");
         if (!$check) {
             $error = 'Ошибка подготовки запроса: ' . $conn->error;
@@ -53,12 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     );
 
                     if ($stmt->execute()) {
-                        // Успешная регистрация — можно сразу авторизовать
                         session_start();
-                        // Получаем ID нового пользователя
-                        $user_id = $conn->insert_id;
-                        $_SESSION['user_id'] = $user_id;
-                        
+                        $_SESSION['user_id'] = $conn->insert_id;
                         header("Location: ../main/main.php");
                         exit();
                     } else {
@@ -67,9 +61,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
         }
+        $conn->close();
     }
-
-    $conn->close();
 }
 ?>
 
@@ -80,60 +73,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Working - актуальная и современная платформа для работы, ведения бизнеса и поиска связей. Здесь каждый сможет найти ту работу, которая будет по душе именно тебе">
     <title>Регистрация</title>
+    <!-- Подключаем ВНЕШНИЙ CSS, как в login.php -->
     <link rel="stylesheet" href="../../assets/styles/registration.css">
     <link rel="icon" href="../../../assets/images/icon126x126.png">
     <style>
         html, body {
-            background-color: #00BCD5;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
+        background-color: #00BCD5;
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+        font-family: Arial, sans-serif;
         }
-        .main_div_form {
-            box-shadow: none;
-            max-width: 600px;
-            margin: 2rem auto;
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-        }
-        .form_group {
-            margin-bottom: 1rem;
-        }
-        .form_group label {
-            display: block;
-            margin-bottom: 0.3rem;
-            font-weight: bold;
-            color: #333;
-        }
-        .form_group input, .form_group select {
-            width: 100%;
-            padding: 0.6rem;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-        button {
-            background: #1e40af;
+        strong {
             color: white;
-            padding: 0.8rem;
-            border: none;
-            border-radius: 5px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            width: 100%;
-        }
-        button:hover {
-            background: #2563eb;
-        }
-        .login-link {
-            text-align: center;
-            margin-top: 1.5rem;
-            color: #1e40af;
-        }
-        .login-link a {
-            text-decoration: none;
-            font-weight: bold;
         }
     </style>
 </head>
@@ -161,21 +113,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label for="patronymic">Отчество *</label>
                     <input type="text" id="patronymic" name="patronymic" value="<?= htmlspecialchars($_POST['patronymic'] ?? '', ENT_QUOTES) ?>" required>
                 </div>
-                <div class="form_group form_age">
-                    <label for="age">Дата рождения *</label>
-                    <input type="date" id="age" name="age" value="<?= htmlspecialchars($_POST['age'] ?? '', ENT_QUOTES) ?>" required>
+                <div class="form_group form_birth_date">
+                    <label for="birth_date">Дата рождения *</label>
+                    <input type="date" id="birth_date" name="birth_date" value="<?= htmlspecialchars($_POST['birth_date'] ?? '', ENT_QUOTES) ?>" required>
                 </div>
                 <div class="form_group form_country">
                     <label for="country">Страна *</label>
                     <select id="country" name="country" required>
                         <option value="">-- Выберите страну --</option>
-                        <option value="Россия" <?= (($_POST['country'] ?? '') === 'Россия') ? 'selected' : '' ?>>Россия</option>
-                        <option value="Украина" <?= (($_POST['country'] ?? '') === 'Украина') ? 'selected' : '' ?>>Украина</option>
-                        <option value="Казахстан" <?= (($_POST['country'] ?? '') === 'Казахстан') ? 'selected' : '' ?>>Казахстан</option>
-                        <!-- Остальные страны можно оставить или сократить для примера -->
-                        <option value="США">США</option>
-                        <option value="Германия">Германия</option>
-                        <!-- ...остальные опции... -->
+                        <?php
+                        $countries = [
+                            "Австралия", "Австрия", "Азербайджан", "Албания", "Алжир", "Американское Самоа", "Ангола", "Ангилья", "Антарктида", "Антигуа и Барбуда",
+                            "Аргентина", "Армения", "Аруба", "Афганистан", "Багамские острова", "Бангладеш", "Барбадос", "Бахрейн", "Беларусь", "Белиз",
+                            "Бельгия", "Бенин", "Бермудские острова", "Болгария", "Боливия", "Босния и Герцеговина", "Ботсвана", "Бразилия", "Британская территория в Индийском океане",
+                            "Бруней", "Буркина-Фасо", "Бурунди", "Бутан", "Вануату", "Ватикан", "Великобритания", "Венгрия", "Венесуэла", "Виргинские острова (Британские)",
+                            "Виргинские острова (США)", "Вьетнам", "Габон", "Гаити", "Гайана", "Гамбия", "Гана", "Гваделупа", "Гватемала", "Гвинея", "Гвинея-Бисау",
+                            "Германия", "Гибралтар", "Гондурас", "Гонконг", "Гренада", "Гренландия", "Греция", "Грузия", "Дания", "Джибути", "Доминика",
+                            "Доминиканская Республика", "Египет", "Замбия", "Западная Сахара", "Зимбабве", "Израиль", "Индия", "Индонезия", "Иордания", "Ирак",
+                            "Иран", "Ирландия", "Исландия", "Испания", "Италия", "Йемен", "Кабо-Верде", "Казахстан", "Камбоджа", "Камерун", "Канада",
+                            "Катар", "Кения", "Кипр", "Киргизия", "Кирибати", "Китай", "Кокосовые острова", "Колумбия", "Коморы", "Конго", "Конго (ДРК)",
+                            "Корея (КНДР)", "Корея (Республика)", "Коста-Рика", "Кот-д’Ивуар", "Куба", "Кувейт", "Кюрасао", "Лаос", "Латвия", "Лесото",
+                            "Либерия", "Ливан", "Ливия", "Литва", "Лихтенштейн", "Люксембург", "Маврикий", "Мавритания", "Мадагаскар", "Майотта", "Макао",
+                            "Малави", "Малайзия", "Мали", "Мальдивы", "Мальта", "Марокко", "Мартиника", "Маршалловы острова", "Мексика", "Микронезия",
+                            "Мозамбик", "Молдова", "Монако", "Монголия", "Монтсеррат", "Мьянма", "Намибия", "Науру", "Непал", "Нигер", "Нигерия",
+                            "Нидерланды", "Никарагуа", "Ниуэ", "Новая Зеландия", "Новая Каледония", "Норвегия", "Объединённые Арабские Эмираты", "Оман",
+                            "Пакистан", "Палау", "Палестина", "Панама", "Папуа — Новая Гвинея", "Парагвай", "Перу", "Питкэрн", "Польша", "Португалия",
+                            "Пуэрто-Рико", "Реюньон", "Россия", "Руанда", "Румыния", "Самоа", "Сан-Марино", "Сан-Томе и Принсипи", "Саудовская Аравия",
+                            "Свазиленд", "Северная Македония", "Северные Марианские острова", "Сейшельские острова", "Сенегал", "Сент-Винсент и Гренадины",
+                            "Сент-Китс и Невис", "Сент-Люсия", "Сент-Пьер и Микелон", "Сербия", "Сингапур", "Сирия", "Словакия", "Словения", "Соединённые Штаты Америки",
+                            "Соломоновы острова", "Сомали", "Судан", "Суринам", "Сьерра-Леоне", "Таджикистан", "Таиланд", "Тайвань", "Танзания", "Тёркс и Кайкос",
+                            "Того", "Токелау", "Тонга", "Тринидад и Тобаго", "Тувалу", "Тунис", "Туркменистан", "Турция", "Уганда", "Узбекистан", "Украина",
+                            "Уоллис и Футуна", "Уругвай", "Фарерские острова", "Фиджи", "Филиппины", "Финляндия", "Фолклендские острова", "Франция",
+                            "Французская Гвиана", "Французская Полинезия", "Французские Южные и Антарктические территории", "Хорватия", "Центральноафриканская Республика",
+                            "Чад", "Черногория", "Чехия", "Чили", "Швейцария", "Швеция", "Шри-Ланка", "Эквадор", "Экваториальная Гвинея", "Эландские острова",
+                            "Эль-Сальвадор", "Эритрея", "Эстония", "Эфиопия", "Южная Африка", "Южная Георгия и Южные Сандвичевы острова", "Южная Корея",
+                            "Южный Судан", "Ямайка", "Япония"
+                        ];
+                        foreach ($countries as $country) {
+                            $selected = (($_POST['country'] ?? '') === $country) ? 'selected' : '';
+                            echo "<option value=\"" . htmlspecialchars($country, ENT_QUOTES, 'UTF-8') . "\" $selected>$country</option>\n";
+                        }
+                        ?>
                     </select>
                 </div>
                 <div class="form_group form_region">
@@ -186,13 +164,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label for="city">Город *</label>
                     <input type="text" id="city" name="city" value="<?= htmlspecialchars($_POST['city'] ?? '', ENT_QUOTES) ?>" required>
                 </div>
-                <div class="form_group form_number">
-                    <label for="number">Номер телефона *</label>
-                    <input type="tel" id="number" name="number" value="<?= htmlspecialchars($_POST['number'] ?? '', ENT_QUOTES) ?>" placeholder="+7 (000) 000-00-00" required>
+                <div class="form_group form_phone">
+                    <label for="phone">Номер телефона *</label>
+                    <input type="tel" id="phone" name="phone" value="<?= htmlspecialchars($_POST['phone'] ?? '', ENT_QUOTES) ?>" placeholder="+7 (000) 000-00-00" required>
                 </div>
 
                 <script>
-                    document.getElementById('number').addEventListener('input', function (e) {
+                    document.getElementById('phone').addEventListener('input', function (e) {
                         let value = e.target.value.replace(/\D/g, '');
                         if (value.length > 0 && !['7', '8'].includes(value[0])) {
                             value = '7' + value;
