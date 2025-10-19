@@ -33,7 +33,7 @@ function normalizeToUSD($priceStr, $rates) {
     if (preg_match('/грн/i', $priceStr)) return $number * $rates['UAH'];
     if (preg_match('/Br/i', $priceStr)) return $number * $rates['BYN'];
 
-    // По умолчанию — рубли (для русскоязычной аудитории)
+    // По умолчанию — рубли
     return $number * $rates['RUB'];
 }
 
@@ -165,6 +165,68 @@ try {
             text-decoration: none;
             color: #4a6cf7;
             font-weight: 600;
+        }
+
+        /* === ВЫПАДАЮЩЕЕ МЕНЮ ПОЛЬЗОВАТЕЛЯ === */
+        .user-menu {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .profile-btn {
+            background: none;
+            border: none;
+            color: #4a6cf7;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .profile-btn:hover {
+            background: rgba(74, 108, 247, 0.1);
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: #222;
+            border: 1px solid #444;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            min-width: 180px;
+            z-index: 1000;
+            flex-direction: column;
+        }
+
+        .dropdown-menu a {
+            padding: 0.75rem 1rem;
+            color: #e0e0e0;
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .dropdown-menu a:hover {
+            background: #333;
+            color: #4a9eff;
+        }
+
+        .dropdown-menu.show {
+            display: flex;
+        }
+
+        .logout-link {
+            color: #ff6b6b !important;
+        }
+
+        .logout-link:hover {
+            color: #ff4d4d !important;
         }
 
         .theme-buttons {
@@ -328,7 +390,31 @@ try {
         <input type="text" id="search-input" placeholder="Поиск по сайту...">
     </div>
     <?php if ($is_logged_in): ?>
-        <a href="../profile/profile.php" class="profile-link">Профиль</a>
+        <?php
+        $user_name = 'Гость';
+        if ($user_id) {
+            try {
+                $stmt = $pdo->prepare("SELECT name, surname FROM users WHERE id = ?");
+                $stmt->execute([$user_id]);
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($user) {
+                    $user_name = htmlspecialchars($user['name'] . ' ' . $user['surname'], ENT_QUOTES, 'UTF-8');
+                }
+            } catch (PDOException $e) {
+                // оставить "Гость"
+            }
+        }
+        ?>
+        <div class="user-menu">
+            <button class="profile-btn"><?= $user_name ?></button>
+            <div class="dropdown-menu" id="user-dropdown">
+                <a href="../profile/profile.php">Профиль</a>
+                <a href="../settings/settings.php">Настройки</a>
+                <a href="../news/news.php">Новости</a>
+                <a href="../market/market.php">Рынок</a>
+                <a href="../login/logout.php" class="logout-link">Выход</a>
+            </div>
+        </div>
     <?php else: ?>
         <a href="../login/login.php" class="profile-link">Войти</a>
     <?php endif; ?>
@@ -380,10 +466,12 @@ try {
                             <p>📍 Местоположение: <?= htmlspecialchars($v['location'], ENT_QUOTES, 'UTF-8') ?></p>
                         <?php endif; ?>
                         <?php if (!empty($v['description'])): ?>
-                            <p>📄 Описание:<br><?= nl2br(htmlspecialchars($v['description'], ENT_QUOTES, 'UTF-8')) ?></p>
+                            <p>📄 Описание:
+<?= nl2br(htmlspecialchars($v['description'], ENT_QUOTES, 'UTF-8')) ?></p>
                         <?php endif; ?>
                         <?php if (!empty($v['requirements'])): ?>
-                            <p>📋 Требования:<br><?= nl2br(htmlspecialchars($v['requirements'], ENT_QUOTES, 'UTF-8')) ?></p>
+                            <p>📋 Требования:
+<?= nl2br(htmlspecialchars($v['requirements'], ENT_QUOTES, 'UTF-8')) ?></p>
                         <?php endif; ?>
                         <?php if (!empty($v['contacts'])): ?>
                             <p>📞 Контакты: <strong><?= htmlspecialchars($v['contacts'], ENT_QUOTES, 'UTF-8') ?></strong></p>
@@ -436,7 +524,8 @@ try {
                             <p>📍 Местоположение: <?= htmlspecialchars($s['location'], ENT_QUOTES, 'UTF-8') ?></p>
                         <?php endif; ?>
                         <?php if (!empty($s['description'])): ?>
-                            <p>📄 Описание:<br><?= nl2br(htmlspecialchars($s['description'], ENT_QUOTES, 'UTF-8')) ?></p>
+                            <p>📄 Описание:
+<?= nl2br(htmlspecialchars($s['description'], ENT_QUOTES, 'UTF-8')) ?></p>
                         <?php endif; ?>
                         <?php if (!empty($s['contacts'])): ?>
                             <p>📞 Контакты: <strong><?= htmlspecialchars($s['contacts'], ENT_QUOTES, 'UTF-8') ?></strong></p>
@@ -488,10 +577,12 @@ try {
                             <p>📍 Местоположение: <?= htmlspecialchars($r['location'], ENT_QUOTES, 'UTF-8') ?></p>
                         <?php endif; ?>
                         <?php if (!empty($r['description'])): ?>
-                            <p>📄 Описание:<br><?= nl2br(htmlspecialchars($r['description'], ENT_QUOTES, 'UTF-8')) ?></p>
+                            <p>📄 Описание:
+<?= nl2br(htmlspecialchars($r['description'], ENT_QUOTES, 'UTF-8')) ?></p>
                         <?php endif; ?>
                         <?php if (!empty($r['requirements'])): ?>
-                            <p>📋 Требования:<br><?= nl2br(htmlspecialchars($r['requirements'], ENT_QUOTES, 'UTF-8')) ?></p>
+                            <p>📋 Требования:
+<?= nl2br(htmlspecialchars($r['requirements'], ENT_QUOTES, 'UTF-8')) ?></p>
                         <?php endif; ?>
                         <?php if (!empty($r['contacts'])): ?>
                             <p>📞 Ваши контакты: <strong><?= htmlspecialchars($r['contacts'], ENT_QUOTES, 'UTF-8') ?></strong></p>
@@ -510,6 +601,7 @@ try {
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function () {
     const buttons = document.querySelectorAll('.theme-btn');
     const contents = document.querySelectorAll('.theme-content');
     const searchInput = document.getElementById('search-input');
@@ -628,7 +720,26 @@ try {
         searchInput.addEventListener('input', filterContent);
     }
 
+    // Выпадающее меню пользователя
+    const profileBtn = document.querySelector('.profile-btn');
+    const dropdown = document.getElementById('user-dropdown');
+
+    if (profileBtn && dropdown) {
+        profileBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('show');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!profileBtn.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+    }
+
     filterContent();
+});
 </script>
+
 </body>
 </html>
