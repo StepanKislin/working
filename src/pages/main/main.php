@@ -411,6 +411,7 @@ try {
                 <a href="../profile/profile.php">Профиль</a>
                 <a href="../settings/settings.php">Настройки</a>
                 <a href="../news/news.php">Новости</a>
+                <a href="../help/help.php">Помощь по сайту</a>
                 <a href="../market/market.php">Рынок</a>
                 <a href="../login/logout.php" class="logout-link">Выход</a>
             </div>
