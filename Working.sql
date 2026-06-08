@@ -27,7 +27,7 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Структура таблицы `career_test_options`
+-- Структура таблицы `career_test_options`  
 --
 
 CREATE TABLE `career_test_options` (
