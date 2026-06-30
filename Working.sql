@@ -137,7 +137,6 @@ INSERT INTO `career_test_results` (`id`, `user_id`, `result_direction`, `created
 --
 -- Структура таблицы `help_qa`
 --
-
 CREATE TABLE `help_qa` (
   `id` int NOT NULL,
   `question_patterns` text NOT NULL COMMENT 'JSON-массив ключевых фраз, например: ["пароль", "забыл пароль"]',
@@ -145,11 +144,9 @@ CREATE TABLE `help_qa` (
   `category` varchar(100) DEFAULT 'Общее',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
 --
 -- Дамп данных таблицы `help_qa`
 --
-
 INSERT INTO `help_qa` (`id`, `question_patterns`, `answer`, `category`, `created_at`) VALUES
 (1, '[\"регистрац\", \"зарегистрировать\", \"создать аккаунт\", \"аккаунт\", \"вход\", \"войти\", \"логин\", \"зарегаться\"]', 'Перейдите на страницу «Войти» и нажмите «Регистрация». Заполните форму: имя, фамилия, email и пароль. После подтверждения email вы сможете публиковать вакансии, услуги и заявки.', 'Аккаунт', '2025-11-30 19:11:13'),
 (2, '[\"пароль\", \"забыл пароль\", \"восстановить пароль\", \"не помню пароль\", \"сброс пароля\"]', 'На странице входа нажмите «Забыли пароль?». Введите email, указанный при регистрации — мы вышлем ссылку для сброса.', 'Аккаунт', '2025-11-30 19:11:13'),
